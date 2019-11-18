@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ContentWrapper from '../Layout/ContentWrapper';
+import { Link } from 'react-router-dom';
 import { Row, Col, Card, CardBody, CardFooter, Dropdown, DropdownMenu, DropdownToggle, DropdownItem } from 'reactstrap';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
@@ -8,25 +9,52 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import Snackbar from '@material-ui/core/Snackbar';
+import { makeStyles } from '@material-ui/core/styles';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
 import axios from "axios";
+import moment from 'moment';
+
+const useStyles = makeStyles(theme => ({
+    close: {
+        padding: theme.spacing(0.5),
+    },
+}));
 
 const ContactCard = props => {
 
     const handleOpen = () => {
-        props.handleOpen(props.id, props.name, props.lastName, props.email);
+        props.handleOpen(props.id, props.first_name, props.last_name, props.email);
     }
 
     return (
         <div>
             <Card className="card-default">
                 <CardBody className="text-center">
-                    <img className="mb-2 img-fluid rounded-circle thumb64" src={props.imgsrc} alt="Contact" />
-                    <h4>{props.name} {props.lastName}</h4>
+                    <img className="mb-2 img-fluid rounded-circle thumb64" src={props.avatar} alt="Contact" />
+                    <h4>{props.first_name} {props.last_name}</h4>
                     <p>{props.email}</p>
+                    {props.updatedAt &&
+                        <div className="muted">
+                            {`Updated At: ${moment(props.updatedAt).format('MMMM Do YYYY, h:mm:ss a')}`}
+                        </div>
+                    }
+
+                    {!props.updatedAt &&
+                        <div>&nbsp;</div>
+                    }
                 </CardBody>
                 <CardFooter className="d-flex">
+                    <div className="mr-auto">
+                        <Link to={'/contacts/' + props.id}>
+                            <Button variant="contained" color="primary" onClick={handleOpen}>
+                                View
+                        </Button>
+                        </Link>
+                    </div>
                     <div className="ml-auto">
-                        <Button variant="contained" color="primary" data-name="test" onClick={handleOpen}>
+                        <Button variant="contained" color="secondary" onClick={handleOpen}>
                             Edit
                         </Button>
                     </div>
@@ -45,23 +73,26 @@ const ContactDialog = props => {
     const handleSubmit = (event) => {
         event.preventDefault();
 
+        console.log(props.user.id);
+
         // send a PUT request
         axios({
             method: 'put',
-            url: 'https://reqres.in/api/users/' + props.id,
+            url: 'https://reqres.in/api/users/' + props.user.id,
             data: {
-                name: user.name,
-                lastName: user.lastName
+                id: props.user.id,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                email: user.email
             }
         }).then(response => {
-            console.log(response);
-            props.handleClose();
+            props.handleClose(response.data);
         }).catch(error => {
             console.error(error);
         });
     }
 
-    const handleChange = (e) => {
+    const handleChanges = (e) => {
         setUser({
             ...user,
             [e.target.name]: e.target.value
@@ -70,7 +101,7 @@ const ContactDialog = props => {
 
     return (
         <Dialog open={props.open} onClose={props.handleClose} aria-labelledby="form-dialog-title">
-            <DialogTitle id="form-dialog-title">{user.name} {user.lastName}</DialogTitle>
+            <DialogTitle id="form-dialog-title">{user.first_name} {user.last_name}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
                     User ID: {user.id}
@@ -78,23 +109,23 @@ const ContactDialog = props => {
                 <TextField
                     autoFocus
                     margin="dense"
-                    id="name"
-                    name="name"
+                    id="first_name"
+                    name="first_name"
                     label="Name"
                     type="text"
                     fullWidth
-                    value={user.name}
-                    onChange={handleChange}
+                    value={user.first_name}
+                    onChange={handleChanges}
                 />
                 <TextField
                     margin="dense"
-                    id="lastName"
+                    id="last_name"
                     label="Last Name"
-                    name="lastName"
+                    name="last_name"
                     type="text"
                     fullWidth
-                    value={user.lastName}
-                    onChange={handleChange}
+                    value={user.last_name}
+                    onChange={handleChanges}
                 />
                 <TextField
                     margin="dense"
@@ -104,7 +135,7 @@ const ContactDialog = props => {
                     type="email"
                     fullWidth
                     value={user.email}
-                    onChange={handleChange}
+                    onChange={handleChanges}
                 />
             </DialogContent>
             <DialogActions>
@@ -125,34 +156,51 @@ function Contacts() {
         fetchItems();
     }, []);
 
+    const classes = useStyles();
     const [items, setItems] = useState([]);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [open, setOpen] = useState(false);
     const [user, setUser] = useState(null);
+    const [message, setMessage] = useState("");
+    const [openMessage, setOpenMessage] = useState(false);
 
     const fetchItems = async () => {
         const data = await fetch('https://reqres.in/api/users');
-
         const items = await data.json();
 
         setItems(items.data);
     }
 
-    const handleClose = () => {
-        setOpen(false);
+    const handleClose = (user) => {
+        const foundIndex = items.findIndex(item => item.id === user.id);
+
+        if (foundIndex >= 0) {
+            user.avatar = items[foundIndex].avatar;
+            items[foundIndex] = user;
+
+            setItems(items);
+            setMessage("Contact Updated");
+            setOpenMessage(true);
+        }
+
         setUser(null);
+        setOpen(false);
     };
 
-    const handleOpen = (id, name, lastName, email) => {
+    const handleOpen = (id, first_name, last_name, email) => {
         setUser({
             id,
-            name,
-            lastName,
+            first_name,
+            last_name,
             email
         });
 
         setOpen(true);
     }
+
+    const handleCloseMessage = () => {
+        setOpenMessage(false);
+    };
 
     return (
         <ContentWrapper>
@@ -172,12 +220,37 @@ function Contacts() {
                 </div>
             </div>
             {user && <ContactDialog open={open} handleClose={handleClose} user={user} ></ContactDialog>}
+            <Snackbar
+                anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'center',
+                }}
+                open={openMessage}
+                autoHideDuration={6000}
+                onClose={handleCloseMessage}
+                ContentProps={{
+                    'aria-describedby': 'message-id',
+                }}
+                message={<span id="message-id">{message}</span>}
+                action={[
+                    <IconButton
+                        key="close"
+                        aria-label="close"
+                        color="inherit"
+                        className={classes.close}
+                        onClick={handleCloseMessage}
+                    >
+                        <CloseIcon />
+                    </IconButton>,
+                ]}
+            />
             <Row>
                 {items.map((item, index) => (
                     <Col key={index} lg="4" sm="6">
-                        <ContactCard id={item.id} imgsrc={item.avatar}
-                            name={item.first_name}
-                            lastName={item.last_name}
+                        <ContactCard id={item.id} avatar={item.avatar}
+                            updatedAt={item.updatedAt}
+                            first_name={item.first_name}
+                            last_name={item.last_name}
                             email={item.email}
                             handleOpen={handleOpen} />
                     </Col>

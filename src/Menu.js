@@ -17,7 +17,7 @@ const Menu = [
         submenu: [
             {
                 name: 'Contact Details',
-                path: '/contact-details'
+                path: '/contacts/1'
             },
             {
                 name: 'Contacts',

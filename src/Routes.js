@@ -30,8 +30,8 @@ const Routes = ({ location }) => {
                     <div>
                         <Suspense fallback={<PageLoader />}>
                             <Switch location={location}>
-                                <Route path="/contact-details" component={waitFor(ContactDetails)} />
-                                <Route path="/contacts" component={waitFor(Contacts)} />
+                                <Route path="/contacts" exact component={waitFor(Contacts)} />
+                                <Route path="/contacts/:id" component={waitFor(ContactDetails)} />
                                 <Redirect to="/contacts" />
                             </Switch>
                         </Suspense>
