@@ -1,7 +1,6 @@
 const Menu = [
     {
         heading: 'Main Navigation',
-        translate: 'sidebar.heading.HEADER'
     },
     {
         name: 'Contacts',

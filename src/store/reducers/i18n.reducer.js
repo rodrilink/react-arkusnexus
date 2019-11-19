@@ -1,7 +1,7 @@
 import { CHANGE_LANGUAGE } from '../actions/actions';
 
 const initialLanguages = {
-    language: 'es'
+    language: 'en'
 }
 
 const languagesReducer = (state = initialLanguages, action) => {

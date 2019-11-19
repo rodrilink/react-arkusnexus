@@ -203,6 +203,7 @@ function Contacts() {
 
             setItems(items);
             setMessage("Contact Updated");
+            setOpenMessage(true);
 
         } else if (user.id) {
             setItems([
@@ -217,10 +218,11 @@ function Contacts() {
                 ...items
             ]);
             setMessage("Contact Created");
+            setOpenMessage(true);
         }
 
         setUser(null);
-        setOpenMessage(true);
+        
         setOpen(false);
     };
 

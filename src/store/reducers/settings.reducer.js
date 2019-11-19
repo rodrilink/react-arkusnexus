@@ -6,7 +6,7 @@ const initialSettings = {
     /* Sidebar collapsed */
     isCollapsed: false,
     /* Boxed layout */
-    isBoxed: true,
+    isBoxed: false,
     /* Floating sidebar */
     isFloat: false,
     /* Sidebar show menu on hover only */

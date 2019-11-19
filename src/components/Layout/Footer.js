@@ -6,7 +6,7 @@ class Footer extends Component {
         const year = new Date().getFullYear()
         return (
             <footer className="footer-container">
-                <span>&copy; {year} - Contacts Manager</span>
+                <span>&copy; {year} - Arkus Nexus</span>
             </footer>
         );
     }
