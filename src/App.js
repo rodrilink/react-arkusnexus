@@ -1,6 +1,6 @@
 /*!
  *
- * Angle - Bootstrap Admin Template
+ * Arkus Nexus
  *
  * Version: 4.5
  * Author: @themicon_co

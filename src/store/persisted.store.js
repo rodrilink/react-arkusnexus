@@ -2,7 +2,7 @@ import { updateClasses } from './middlewares/settings.middleware.js';
 import { updateTheme } from './middlewares/themes.middleware.js';
 import { updateLanguage } from './middlewares/i18n.middleware.js';
 
-const STORAGE_KEY = 'angle-store-key';
+const STORAGE_KEY = 'arkus-store-key';
 
 
 /**
