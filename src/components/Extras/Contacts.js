@@ -46,13 +46,14 @@ const ContactCard = props => {
                     }
                 </CardBody>
                 <CardFooter className="d-flex">
-                    <div className="mr-auto">
+
+                    {!props.newUser && (<div className="mr-auto">
                         <Link to={'/contacts/' + props.id}>
                             <Button variant="contained" color="primary" onClick={handleOpen}>
                                 View
                         </Button>
                         </Link>
-                    </div>
+                    </div>)}
                     <div className="ml-auto">
                         <Button variant="contained" color="secondary" onClick={handleOpen}>
                             Edit
@@ -73,23 +74,37 @@ const ContactDialog = props => {
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        console.log(props.user.id);
-
-        // send a PUT request
-        axios({
-            method: 'put',
-            url: 'https://reqres.in/api/users/' + props.user.id,
-            data: {
-                id: props.user.id,
-                first_name: user.first_name,
-                last_name: user.last_name,
-                email: user.email
-            }
-        }).then(response => {
-            props.handleClose(response.data);
-        }).catch(error => {
-            console.error(error);
-        });
+        if (props.user.id) {
+            // send a PUT request
+            axios({
+                method: 'put',
+                url: 'https://reqres.in/api/users/' + props.user.id,
+                data: {
+                    id: props.user.id,
+                    first_name: user.first_name,
+                    last_name: user.last_name,
+                    email: user.email
+                }
+            }).then(response => {
+                props.handleClose(response.data);
+            }).catch(error => {
+                console.error(error);
+            });
+        } else {
+            axios({
+                method: 'post',
+                url: 'https://reqres.in/api/users/',
+                data: {
+                    first_name: user.first_name,
+                    last_name: user.last_name,
+                    email: user.email
+                }
+            }).then(response => {
+                props.handleClose(response.data);
+            }).catch(error => {
+                console.error(error);
+            });
+        }
     }
 
     const handleChanges = (e) => {
@@ -101,51 +116,59 @@ const ContactDialog = props => {
 
     return (
         <Dialog open={props.open} onClose={props.handleClose} aria-labelledby="form-dialog-title">
-            <DialogTitle id="form-dialog-title">{user.first_name} {user.last_name}</DialogTitle>
-            <DialogContent>
-                <DialogContentText>
-                    User ID: {user.id}
-                </DialogContentText>
-                <TextField
-                    autoFocus
-                    margin="dense"
-                    id="first_name"
-                    name="first_name"
-                    label="Name"
-                    type="text"
-                    fullWidth
-                    value={user.first_name}
-                    onChange={handleChanges}
-                />
-                <TextField
-                    margin="dense"
-                    id="last_name"
-                    label="Last Name"
-                    name="last_name"
-                    type="text"
-                    fullWidth
-                    value={user.last_name}
-                    onChange={handleChanges}
-                />
-                <TextField
-                    margin="dense"
-                    id="email"
-                    name="email"
-                    label="Email Address"
-                    type="email"
-                    fullWidth
-                    value={user.email}
-                    onChange={handleChanges}
-                />
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={props.handleClose} color="primary">
-                    Cancel
+            <form onSubmit={handleSubmit}>
+                {user.id && (<DialogTitle id="form-dialog-title">
+                    {user.first_name + " " + user.last_name}
+                </DialogTitle>)}
+                {!user.id && (<DialogTitle id="form-dialog-title"> New Contact </DialogTitle>)}
+                <DialogContent>
+                    {user.id && <DialogContentText>
+                        User ID: {user.id}
+                    </DialogContentText>
+                    }
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="first_name"
+                        name="first_name"
+                        label="Name"
+                        type="text"
+                        fullWidth
+                        required
+                        value={user.first_name}
+                        onChange={handleChanges}
+                    />
+                    <TextField
+                        margin="dense"
+                        id="last_name"
+                        label="Last Name"
+                        name="last_name"
+                        type="text"
+                        fullWidth
+                        value={user.last_name}
+                        onChange={handleChanges}
+                    />
+                    <TextField
+                        margin="dense"
+                        id="email"
+                        name="email"
+                        label="Email Address"
+                        type="email"
+                        fullWidth
+                        required
+                        value={user.email}
+                        onChange={handleChanges}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={props.handleClose} color="primary">
+                        Cancel
                     </Button>
-                <Button type="button" color="primary" onClick={handleSubmit}>
-                    Save
+                    <Button type="submit" color="primary">
+                        Save
                     </Button>
-            </DialogActions>
+                </DialogActions>
+            </form>
         </Dialog>
     );
 }
@@ -180,10 +203,24 @@ function Contacts() {
 
             setItems(items);
             setMessage("Contact Updated");
-            setOpenMessage(true);
+
+        } else if (user.id) {
+            setItems([
+                {
+                    newUser: true,
+                    id: user.id,
+                    first_name: user.first_name,
+                    last_name: user.last_name,
+                    email: user.email,
+                    avatar: 'https://randomuser.me/api/portraits/med/men/1.jpg'
+                },
+                ...items
+            ]);
+            setMessage("Contact Created");
         }
 
         setUser(null);
+        setOpenMessage(true);
         setOpen(false);
     };
 
@@ -202,6 +239,15 @@ function Contacts() {
         setOpenMessage(false);
     };
 
+    const handleNewContact = () => {
+        setUser({
+            first_name: "",
+            last_name: "",
+            email: ""
+        });
+        setOpen(true);
+    }
+
     return (
         <ContentWrapper>
             <div className="content-heading">Contacts
@@ -211,7 +257,7 @@ function Contacts() {
                             <em className="fa fa-ellipsis-v fa-lg"></em>
                         </DropdownToggle>
                         <DropdownMenu className="dropdown-menu-right-forced animated fadeInLeft">
-                            <DropdownItem>
+                            <DropdownItem onClick={handleNewContact}>
                                 <em className="fa-fw fa fa-plus mr-2"></em>
                                 <span>New contact</span>
                             </DropdownItem>
@@ -247,7 +293,10 @@ function Contacts() {
             <Row>
                 {items.map((item, index) => (
                     <Col key={index} lg="4" sm="6">
-                        <ContactCard id={item.id} avatar={item.avatar}
+                        <ContactCard
+                            newUser={item.newUser}
+                            id={item.id}
+                            avatar={item.avatar}
                             updatedAt={item.updatedAt}
                             first_name={item.first_name}
                             last_name={item.last_name}

@@ -16,7 +16,7 @@ import axios from 'axios';
 const useStyles = makeStyles(theme => ({
     close: {
         padding: theme.spacing(0.5),
-    },
+    }
 }));
 
 const ContactDeleteDialog = props => {
@@ -65,11 +65,15 @@ function ContactDetails({ match }) {
     const [message, setMessage] = useState("");
     const [openMessage, setOpenMessage] = useState(false);
     const [user, setUser] = useState({});
-    const fetchItem = async () => {
-        const fetchItem = await fetch(`https://reqres.in/api/users/${match.params.id}`)
-        const item = await fetchItem.json();
 
-        setUser(item.data);
+    const fetchItem = async () => {
+        const fetchItem = await fetch(`https://reqres.in/api/users/${match.params.id}`);
+
+        if (fetchItem.status === 200) {
+            const item = await fetchItem.json();
+
+            setUser(item.data);
+        }
     }
 
     const handleClose = (confirmation) => {
@@ -119,7 +123,7 @@ function ContactDetails({ match }) {
 
     return (
         <ContentWrapper>
-            <Row>
+            {user.id && (<Row>
                 <Col lg="4">
                     <div className="card card-default">
                         <div className="card-body text-center">
@@ -175,6 +179,14 @@ function ContactDetails({ match }) {
                     </div>
                 </Col>
             </Row>
+            )}
+            {!user.id && (
+                <Row>
+                    <Col>
+                        <h1>No user found</h1>
+                    </Col>
+                </Row>
+            )}
             <ContactDeleteDialog open={open} handleClose={handleClose} user={user} ></ContactDeleteDialog>
             <Snackbar
                 anchorOrigin={{

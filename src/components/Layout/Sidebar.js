@@ -21,10 +21,10 @@ const SidebarItemHeader = ({ item }) => (
 )
 
 /** Normal items for the sidebar */
-const SidebarItem = ({ item, isActive }) => (
+const SidebarItem = ({ item, isActive, count }) => (
     <li className={isActive ? 'active' : ''}>
         <Link to={item.path} title={item.name}>
-            {item.label && <Badge tag="div" className="float-right" color={item.label.color}>{item.label.value}</Badge>}
+            {item.label && <Badge tag="div" className="float-right" color={item.label.color}>{count}</Badge>}
             {item.icon && <em className={item.icon}></em>}
             <span><Trans i18nKey={item.translate}>{item.name}</Trans></span>
         </Link>
@@ -32,10 +32,10 @@ const SidebarItem = ({ item, isActive }) => (
 )
 
 /** Build a sub menu with items inside and attach collapse behavior */
-const SidebarSubItem = ({ item, isActive, handler, children, isOpen }) => (
+const SidebarSubItem = ({ item, isActive, handler, children, isOpen, count }) => (
     <li className={isActive ? 'active' : ''}>
         <div className="nav-item" onClick={handler}>
-            {item.label && <Badge tag="div" className="float-right" color={item.label.color}>{item.label.value}</Badge>}
+            {item.label && <Badge tag="div" className="float-right" color={item.label.color}>{count}</Badge>}
             {item.icon && <em className={item.icon}></em>}
             <span><Trans i18nKey={item.translate}>{item.name}</Trans></span>
         </div>
@@ -55,10 +55,21 @@ const SidebarSubHeader = ({ item }) => (
 class Sidebar extends Component {
 
     state = {
-        collapse: {}
+        collapse: {},
+        count: 0
+    }
+
+    fetchItems = async () => {
+        const data = await fetch('https://reqres.in/api/users');
+        const items = await data.json();
+
+        this.setState({ count: items.data.length });
     }
 
     componentDidMount() {
+
+        this.fetchItems();
+
         // pass navigator to access router api
         SidebarRun(this.navigator, this.closeSidebar);
         // prepare the flags to handle menu collapsed states
@@ -66,6 +77,8 @@ class Sidebar extends Component {
 
         // Listen for routes changes in order to hide the sidebar on mobile
         this.props.history.listen(this.closeSidebar);
+
+
     }
 
     closeSidebar = () => {
@@ -142,15 +155,15 @@ class Sidebar extends Component {
                                     else {
                                         if (this.itemType(item) === 'menu')
                                             return (
-                                                <SidebarItem isActive={this.routeActive(item.path)} item={item} key={i} />
+                                                <SidebarItem isActive={this.routeActive(item.path)} item={item} key={i} count={this.state.count} />
                                             )
                                         if (this.itemType(item) === 'submenu')
                                             return [
-                                                <SidebarSubItem item={item} isOpen={this.state.collapse[item.name]} handler={this.toggleItemCollapse.bind(this, item.name)} isActive={this.routeActive(this.getSubRoutes(item))} key={i}>
+                                                <SidebarSubItem item={item} isOpen={this.state.collapse[item.name]} count={this.state.count} handler={this.toggleItemCollapse.bind(this, item.name)} isActive={this.routeActive(this.getSubRoutes(item))} key={i}>
                                                     <SidebarSubHeader item={item} key={i} />
                                                     {
                                                         item.submenu.map((subitem, i) =>
-                                                            <SidebarItem key={i} item={subitem} isActive={this.routeActive(subitem.path)} />
+                                                            <SidebarItem key={i} item={subitem} isActive={this.routeActive(subitem.path)} count={this.state.count} />
                                                         )
                                                     }
                                                 </SidebarSubItem>
